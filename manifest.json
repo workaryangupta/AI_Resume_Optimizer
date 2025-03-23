@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Resume Tailor (Local NLP)",
+  "version": "1.0",
+  "description": "Analyzes and tailors your resume (PDF) based on job requirements, with local NLP (no paid APIs).",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://localhost:5001/*"
+  ]
+}
