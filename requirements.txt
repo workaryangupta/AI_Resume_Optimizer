@@ -9,3 +9,4 @@ transformers==4.28.0
 torch
 scikit-learn==1.2.2
 numpy==1.24.3
+sentence-transformers

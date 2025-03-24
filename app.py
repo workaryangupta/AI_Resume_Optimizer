@@ -14,6 +14,7 @@ from fpdf import FPDF
 import torch
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sentence_transformers import SentenceTransformer, util
 
 app = Flask(__name__)
 CORS(app)
@@ -24,7 +25,7 @@ logging.basicConfig(level=logging.INFO)
 ###############################################################################
 
 # (A) For rewriting with a local language model (Flan-T5)
-MODEL_NAME = "google/flan-t5-base"  # smaller than "large" or "xl"
+MODEL_NAME = "google/flan-t5-small"  # smaller model than "base"
 logging.info("Loading local model and tokenizer. This may take a while on first run...")
 tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
 model = AutoModelForSeq2SeqLM.from_pretrained(MODEL_NAME)
@@ -51,40 +52,154 @@ def extract_text_from_pdf(pdf_file):
         logging.error("Error extracting text from PDF: " + str(e))
         raise
 
-def generate_suggestions(resume_text, job_description):
+    
+# Initialize a local embedding model once (outside the function).
+# "all-MiniLM-L6-v2" is a small, fast model for semantic similarity.
+embedding_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+
+import re
+
+def parse_bullet_points(text: str):
     """
-    Identify top keywords from the job description that are missing
-    or underrepresented in the resume. Return a human-readable string
-    of suggestions.
+    Split the job description into bullet points or meaningful lines,
+    skipping known headings and ignoring empty lines.
     """
-    documents = [resume_text, job_description]
-    try:
-        tfidf_matrix = vectorizer.fit_transform(documents)
-        feature_names = vectorizer.get_feature_names_out()
 
-        resume_tfidf = tfidf_matrix[0].toarray()[0]
-        job_tfidf = tfidf_matrix[1].toarray()[0]
+    # Common headings we want to skip
+    HEADINGS = {
+        "Key Responsibilities",
+        "Required Skills & Qualifications",
+        "Must-Have Skills",
+        "Good-to-Have Skills",
+        "About the Role",
+        "Required Skills & Qualifications",
+        "Agile & Collaboration",  # example
+        "Job Description",        # example
+    }
 
-        differences = []
-        for i, word in enumerate(feature_names):
-            diff = job_tfidf[i] - resume_tfidf[i]
-            if diff > 0:
-                differences.append((word, diff))
+    # Bullet symbols or prefixes we look for
+    BULLET_SYMBOLS = ("•", "✅", "-", "✔", "▶")
 
-        differences.sort(key=lambda x: x[1], reverse=True)
-        top_missing = [word for word, diff in differences[:10]]  # top 10
+    bullet_points = []
+    
+    # Split text by line
+    lines = text.splitlines()
+    
+    for line in lines:
+        # Strip whitespace
+        line = line.strip()
+        
+        # Skip empty lines
+        if not line:
+            continue
+        
+        # If the entire line matches a known heading, skip it
+        if line in HEADINGS:
+            continue
+        
+        # Optionally, skip lines that look like headings (heuristic: short lines ending with ':')
+        # e.g. "Key Responsibilities:", "Required Skills:"
+        if re.match(r'^[A-Z][A-Za-z0-9\s&/]+:\s*$', line):
+            continue
+        
+        # Check if the line starts with a bullet symbol
+        # If yes, remove it and any trailing space
+        for sym in BULLET_SYMBOLS:
+            if line.startswith(sym):
+                # remove the symbol
+                line = line[len(sym):].strip()
+                break  # no need to check other symbols
+        
+        # After trimming bullet symbols, skip if it’s now empty
+        if not line:
+            continue
 
-        if not top_missing:
-            return "Your resume already covers the key terms from the job description."
+        # At this point, we have a legitimate bullet/line
+        bullet_points.append(line)
+    
+    return bullet_points
 
-        suggestion_str = (
-            "Consider incorporating or emphasizing the following terms/skills "
-            "from the job description:\n- " + "\n- ".join(top_missing)
-        )
-        return suggestion_str
-    except Exception as e:
-        logging.error("Error generating suggestions: " + str(e))
-        return "Could not generate suggestions."
+
+def cluster_job_bullets(bullets, embedding_model, threshold=0.8):
+    """
+    Naive approach to cluster similar bullets using sentence embeddings.
+    Returns a list of representative bullets, one per cluster.
+    """
+    # Embed all bullets once
+    bullet_embeddings = embedding_model.encode(bullets, convert_to_tensor=True)
+    
+    clusters = []  # list of (rep_index, [indices in cluster])
+    representative_bullets = []
+
+    for i, bullet in enumerate(bullets):
+        added_to_cluster = False
+
+        for cluster_rep_idx, cluster_indices in clusters:
+            # Compare to the representative bullet of this cluster
+            rep_embedding = bullet_embeddings[cluster_rep_idx]
+            current_embedding = bullet_embeddings[i]
+            sim = float(util.pytorch_cos_sim(rep_embedding, current_embedding))
+
+            if sim >= threshold:
+                # Belongs to this cluster
+                cluster_indices.append(i)
+                added_to_cluster = True
+                break
+        
+        if not added_to_cluster:
+            # Create a new cluster with this bullet as the representative
+            clusters.append((i, [i]))
+
+    # Build the final list of representative bullets
+    for (rep_idx, idx_list) in clusters:
+        # Optionally, pick the "longest bullet" or the first bullet as the rep.
+        # Here, we just pick the first bullet in the cluster.
+        representative_bullets.append(bullets[rep_idx])
+
+    return representative_bullets
+
+
+
+def generate_suggestions_with_clustering(resume_text, job_description, embedding_model, threshold=0.5, cluster_threshold=0.8):
+    """
+    1) Parse & cluster job bullets to remove duplicates.
+    2) Check coverage vs. resume lines.
+    """
+    # 1) Parse bullets
+    raw_bullets = parse_bullet_points(job_description)
+    if not raw_bullets:
+        return "No job bullets found in the description."
+
+    # 2) Cluster bullets to remove near-duplicates
+    deduped_bullets = cluster_job_bullets(raw_bullets, embedding_model, threshold=cluster_threshold)
+    
+    # 3) Embed the deduped bullets & resume lines
+    job_embeddings = embedding_model.encode(deduped_bullets, convert_to_tensor=True)
+    resume_lines = [l.strip() for l in resume_text.split('\n') if l.strip()]
+    resume_embeddings = embedding_model.encode(resume_lines, convert_to_tensor=True)
+
+    missing_bullets = []
+    for i, bullet in enumerate(deduped_bullets):
+        sims = util.pytorch_cos_sim(job_embeddings[i], resume_embeddings)
+        best_score = float(sims.max())
+
+        if best_score < threshold:
+            missing_bullets.append(bullet)
+
+    if not missing_bullets:
+        return "Your resume already covers most points from the job description!"
+
+    # 4) Convert missing bullets to actionable suggestions
+    suggestions = []
+    for bullet in missing_bullets:
+        suggestions.append(bullet)
+
+    # Format the final suggestions
+    final_text = "Consider the following improvements:\n\n"
+    for s in suggestions:
+        final_text += f"• {s}\n\n"
+
+    return final_text.strip()
 
 def rewrite_text(original_text, suggestions):
     """
@@ -163,12 +278,20 @@ def analyze_resume():
         logging.info("Extracted resume text for analysis.")
 
         # 4) Generate suggestions (classical NLP with TF-IDF)
-        suggestions = generate_suggestions(resume_text, job_description)
+        # suggestions = generate_suggestions(resume_text, job_description)
+        suggestions = generate_suggestions_with_clustering(
+                            resume_text,
+                            job_description,
+                            embedding_model=embedding_model,   # same global model
+                            threshold=0.35,                     # coverage threshold
+                            cluster_threshold=0.8              # bullet clustering threshold
+                        )
         logging.info("Generated suggestions.")
 
         # 5) Rewrite the resume text locally using Flan-T5
+        logging.info("About to rewrite resume text.")
         updated_resume_text = rewrite_text(resume_text, suggestions)
-        logging.info("Rewrote resume text using local T5 model.")
+        logging.info("Rewrite finished.")
 
         # 6) Convert the updated text into a PDF with full Unicode support
         pdf_data = generate_pdf_from_text(updated_resume_text)
