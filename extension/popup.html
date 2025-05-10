@@ -7,26 +7,37 @@
 </head>
 <body>
   <h1>Resume Tailor (Local NLP)</h1>
-  <p>Select your resume PDF and paste the job description below:</p>
-  
+
+  <!-- 1) Upload or re-upload your PDF -->
   <input type="file" id="resumeFile" accept="application/pdf">
-  <textarea id="jobDescInput" placeholder="Paste the job description here..." rows="10"></textarea>
-  <button id="tailorButton">Tailor Resume</button>
-  
+
+  <!-- 2) Auto-Extract Job Details -->
+  <button id="autoExtractButton">Auto-Extract Job Details</button>
+
+  <!-- 3) Fallback / Manual Paste -->
+  <textarea
+    id="jobDescInput"
+    placeholder="—or paste the job description here—"
+    rows="10"
+  ></textarea>
+
+  <!-- 4) Trigger analysis -->
+  <button id="analyzeButton">Get Suggestions</button>
+
   <section>
     <h2>Suggestions</h2>
     <div id="suggestions" class="result-box">
       Your tailored suggestions will appear here.
     </div>
   </section>
-  
+
   <section>
     <h2>Updated Resume PDF</h2>
     <div id="updatedResume" class="result-box">
       Your updated resume PDF will appear as a download link.
     </div>
   </section>
-  
+
   <script src="popup.js"></script>
 </body>
 </html>
