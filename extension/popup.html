@@ -4,51 +4,49 @@
   <meta charset="UTF-8">
   <title>Resume Tailor (Local NLP)</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    #editor { border:1px solid #ccc; padding:8px; min-height:150px; background:#fff; overflow:auto; }
+    #toolbar button { margin-right:4px; }
+  </style>
 </head>
 <body>
   <h1>Resume Tailor (Local NLP)</h1>
 
-  <!-- Resume status / upload -->
-  <div id="resumeSection">
-    <!-- Shown when no resume is stored -->
-    <div id="uploadWrapper">
-      <input type="file" id="resumeFile" accept="application/pdf">
-      <label for="resumeFile" id="resumeLabel">Choose File</label>
-      <span id="resumeChooserText">No file chosen</span>
-    </div>
-    <!-- Shown when a resume is already stored -->
-    <div id="storedWrapper" style="display:none;">
-      <span>✔️ Uploaded: </span>
-      <strong id="resumeFileName"></strong>
-      <button id="changeResumeButton">Change</button>
-    </div>
+  <!-- Resume upload/status -->
+  <div id="uploadSection">
+    <input type="file" id="resumeFile" accept="application/pdf">
+    <span id="resumeChooserText">No file chosen</span>
   </div>
 
-  <!-- Auto-extract JD -->
-  <button id="autoExtractButton">Auto-Extract Job Details</button>
+  <!-- Stored base resume (hidden until set) -->
+  <div id="storedWrapper" style="display:none; align-items:center; gap:8px;">
+    <span>✔️ Base resume:</span>
+    <strong id="resumeFileName"></strong>
+    <button id="changeResumeButton">Change</button>
+  </div>
 
-  <!-- Manual fallback -->
-  <textarea
-    id="jobDescInput"
-    placeholder="—or paste the job description here—"
-    rows="10"
-  ></textarea>
+  <!-- Editor (always non-persisted) -->
+  <div id="editorSection" style="display:none;">
+    <h2>Edit Your Resume for This Job</h2>
+    <div id="toolbar">
+      <button data-cmd="bold"><b>B</b></button>
+      <button data-cmd="italic"><i>I</i></button>
+      <button data-cmd="insertUnorderedList">• List</button>
+    </div>
+    <div id="editor" contenteditable="true"></div>
+    <button id="downloadEdited">Download Edited Resume</button>
+  </div>
 
-  <!-- Trigger analysis -->
-  <button id="analyzeButton">Get Suggestions</button>
+  <!-- Job description -->
+  <button id="autoExtract">Auto-Extract Job Details</button>
+  <textarea id="jobDescInput" rows="10"
+    placeholder="—or paste the job description here—"></textarea>
 
+  <!-- Suggestions -->
+  <button id="getSuggestions">Get Suggestions</button>
   <section>
     <h2>Suggestions</h2>
-    <div id="suggestions" class="result-box">
-      Your tailored suggestions will appear here.
-    </div>
-  </section>
-
-  <section>
-    <h2>Updated Resume PDF</h2>
-    <div id="updatedResume" class="result-box">
-      Your updated resume PDF will appear as a download link.
-    </div>
+    <div id="suggestions" class="result-box"></div>
   </section>
 
   <script src="popup.js"></script>

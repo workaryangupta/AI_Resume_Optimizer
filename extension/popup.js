@@ -1,139 +1,133 @@
 // popup.js
 
-// Helper: get stored resume data
+// Helpers to get/set the base resume
 function getStoredResume() {
-  return new Promise(resolve => {
-    chrome.storage.local.get(['resumeText', 'resumeFileName'], res => {
-      resolve({
-        text: res.resumeText || '',
-        name: res.resumeFileName || ''
-      });
-    });
-  });
+  return new Promise(res =>
+    chrome.storage.local.get(['resumeText', 'resumeFileName'], obj =>
+      res({ text: obj.resumeText||'', name: obj.resumeFileName||'' })
+    )
+  );
+}
+function setStoredResume(text, name) {
+  return new Promise(res =>
+    chrome.storage.local.set({ resumeText: text, resumeFileName: name }, res)
+  );
 }
 
-// Helper: show/hide UI based on whether we have a resume
-async function initResumeUI() {
-  const { name } = await getStoredResume();
-  const uploadW = document.getElementById('uploadWrapper');
-  const storedW = document.getElementById('storedWrapper');
-  if (name) {
-    // We have a stored resume
-    document.getElementById('resumeFileName').textContent = name;
-    uploadW.style.display = 'none';
-    storedW.style.display = 'flex';
+// Initialize: show upload vs. stored vs. editor
+async function initUI() {
+  const { text, name } = await getStoredResume();
+  const uploadSec = document.getElementById('uploadSection');
+  const storedSec = document.getElementById('storedWrapper');
+  const editorSec = document.getElementById('editorSection');
+  const resumeFileNameEl = document.getElementById('resumeFileName');
+
+  if (name && text) {
+    uploadSec.style.display = 'none';
+    storedSec.style.display = 'flex';
+    resumeFileNameEl.textContent = name;
+    document.getElementById('editor').innerText = text;
+    editorSec.style.display = 'block';
   } else {
-    // No resume yet
-    uploadW.style.display = 'block';
-    storedW.style.display = 'none';
+    uploadSec.style.display = 'block';
+    storedSec.style.display = 'none';
+    editorSec.style.display = 'none';
   }
 }
 
-// 1) On popup load, adjust UI
-document.addEventListener('DOMContentLoaded', initResumeUI);
+document.addEventListener('DOMContentLoaded', initUI);
 
-// 2) When the user selects a PDF, extract & store it
-document.getElementById('resumeFile').addEventListener('change', async (e) => {
+// 1) Upload & store base resume
+document.getElementById('resumeFile').addEventListener('change', async e => {
   const file = e.target.files[0];
   if (!file) return;
-
-  // Show chosen filename immediately
   document.getElementById('resumeChooserText').textContent = file.name;
 
-  // Call backend to extract text
-  const fd = new FormData();
-  fd.append('resume', file);
   try {
-    const resp = await fetch('http://localhost:5001/extract_resume', {
-      method: 'POST',
-      body: fd
-    });
+    const fd = new FormData(); fd.append('resume', file);
+    const resp = await fetch('http://localhost:5001/extract_resume',{ method:'POST', body:fd });
     if (!resp.ok) throw new Error(`Server ${resp.status}`);
     const { resume_text } = await resp.json();
-    // Store both text and filename
-    chrome.storage.local.set({
-      resumeText: resume_text,
-      resumeFileName: file.name
-    }, () => {
-      initResumeUI(); // switch UI to “stored” view
-      alert('✅ Resume uploaded and stored!');
-    });
+    await setStoredResume(resume_text, file.name);
+    alert('✅ Base resume uploaded and stored!');
+    initUI();
   } catch (err) {
     console.error(err);
-    alert('Error extracting resume text: ' + err.message);
+    alert('Error extracting resume: ' + err.message);
   }
 });
 
-// 3) “Change” button: clear stored resume and reset UI
+// 2) Change base resume
 document.getElementById('changeResumeButton').addEventListener('click', () => {
   chrome.storage.local.remove(['resumeText','resumeFileName'], () => {
     document.getElementById('resumeFile').value = '';
     document.getElementById('resumeChooserText').textContent = 'No file chosen';
-    initResumeUI();
+    initUI();
   });
 });
 
-// 4) Auto-Extract Job Details (unchanged)
-document.getElementById("autoExtractButton").addEventListener("click", async () => {
-  const ta = document.getElementById("jobDescInput");
-  ta.value = "⏳ Extracting…";
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  chrome.tabs.sendMessage(tab.id, { action: "extractJD" }, (res) => {
-    if (res?.jobDescription) {
-      ta.value = res.jobDescription;
-    } else {
-      ta.value = "";
-      alert("Auto-extract failed. Please paste manually.");
-    }
-  });
+// 3) Toolbar formatting
+document.getElementById('toolbar').addEventListener('click', e => {
+  const cmd = e.target.dataset.cmd;
+  if (cmd) document.execCommand(cmd, false, null);
 });
 
-// 5) Get Suggestions & Updated PDF, using stored resumeText
-document.getElementById("analyzeButton").addEventListener("click", async () => {
-  const jobDesc = document.getElementById("jobDescInput").value.trim();
-  const { text: resumeText } = await getStoredResume();
-
-  if (!resumeText) {
-    alert("Please upload your resume PDF first.");
-    return;
-  }
-  if (!jobDesc) {
-    alert("Please provide a job description.");
-    return;
-  }
-
-  const sugDiv = document.getElementById("suggestions");
-  const updDiv = document.getElementById("updatedResume");
-  sugDiv.textContent = "Processing suggestions…";
-  updDiv.textContent = "Processing updated resume PDF…";
+// 4) Download edited resume (one-off, does NOT overwrite base)
+document.getElementById('downloadEdited').addEventListener('click', async () => {
+  const text = document.getElementById('editor').innerText.trim();
+  if (!text) return alert('Please upload and edit your resume before downloading.');
 
   try {
-    const fd = new FormData();
-    fd.append("resume_text", resumeText);
-    fd.append("job_description", jobDesc);
+    const fd = new FormData(); fd.append('text', text);
+    const resp = await fetch('http://localhost:5001/generate_pdf',{ method:'POST', body:fd });
+    if (!resp.ok) throw new Error(`Server ${resp.status}`);
+    const { pdf, error } = await resp.json();
+    if (error) throw new Error(error);
 
-    const resp = await fetch("http://localhost:5001/analyze", {
-      method: "POST",
-      body: fd
-    });
-    if (!resp.ok) throw new Error(`Server error ${resp.status}`);
-    const data = await resp.json();
-    if (data.error) throw new Error(data.error);
-
-    sugDiv.textContent = data.suggestions;
-    if (data.updated_resume_pdf) {
-      const link = document.createElement("a");
-      link.href = "data:application/pdf;base64," + data.updated_resume_pdf;
-      link.download = "updated_resume.pdf";
-      link.textContent = "Download Updated Resume PDF";
-      updDiv.innerHTML = "";
-      updDiv.appendChild(link);
-    } else {
-      updDiv.textContent = "No updated resume generated.";
-    }
+    const a = document.createElement('a');
+    a.href = 'data:application/pdf;base64,' + pdf;
+    a.download = 'edited_resume.pdf';
+    a.click();
   } catch (err) {
     console.error(err);
-    sugDiv.textContent = "Error: " + err.message;
-    updDiv.textContent = "Error: " + err.message;
+    alert('Error generating PDF: ' + err.message);
+  }
+});
+
+// 5) Auto-extract JD
+document.getElementById('autoExtract').addEventListener('click', async () => {
+  const ta = document.getElementById('jobDescInput');
+  ta.value = '⏳ Extracting…';
+  const [tab] = await chrome.tabs.query({ active:true, currentWindow:true });
+  chrome.tabs.sendMessage(tab.id, { action:'extractJD' }, res => {
+    if (res?.jobDescription) ta.value = res.jobDescription;
+    else {
+      ta.value = '';
+      alert('Auto-extract failed. Please paste manually.');
+    }
+  });
+});
+
+// 6) Get Suggestions on edited text
+document.getElementById('getSuggestions').addEventListener('click', async () => {
+  const resumeText = document.getElementById('editor').innerText.trim();
+  const jobDesc = document.getElementById('jobDescInput').value.trim();
+  if (!resumeText) return alert('Please upload your base resume first.');
+  if (!jobDesc)    return alert('Please provide a job description.');
+
+  const sugDiv = document.getElementById('suggestions');
+  sugDiv.textContent = 'Processing suggestions…';
+  try {
+    const fd = new FormData();
+    fd.append('resume_text', resumeText);
+    fd.append('job_description', jobDesc);
+    const resp = await fetch('http://localhost:5001/analyze',{ method:'POST', body:fd });
+    if (!resp.ok) throw new Error(`Server ${resp.status}`);
+    const { suggestions, error } = await resp.json();
+    if (error) throw new Error(error);
+    sugDiv.textContent = suggestions;
+  } catch (err) {
+    console.error(err);
+    sugDiv.textContent = 'Error: ' + err.message;
   }
 });

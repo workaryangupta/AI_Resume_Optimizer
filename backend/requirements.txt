@@ -9,4 +9,6 @@ transformers==4.28.0
 torch
 scikit-learn==1.2.2
 numpy==1.24.3
-sentence-transformers
+sentence-transformers==4.1.0
+reportlab>=3.6.12
+huggingface-hub==0.31.1
