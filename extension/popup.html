@@ -8,20 +8,33 @@
 <body>
   <h1>Resume Tailor (Local NLP)</h1>
 
-  <!-- 1) Upload or re-upload your PDF -->
-  <input type="file" id="resumeFile" accept="application/pdf">
+  <!-- Resume status / upload -->
+  <div id="resumeSection">
+    <!-- Shown when no resume is stored -->
+    <div id="uploadWrapper">
+      <input type="file" id="resumeFile" accept="application/pdf">
+      <label for="resumeFile" id="resumeLabel">Choose File</label>
+      <span id="resumeChooserText">No file chosen</span>
+    </div>
+    <!-- Shown when a resume is already stored -->
+    <div id="storedWrapper" style="display:none;">
+      <span>✔️ Uploaded: </span>
+      <strong id="resumeFileName"></strong>
+      <button id="changeResumeButton">Change</button>
+    </div>
+  </div>
 
-  <!-- 2) Auto-Extract Job Details -->
+  <!-- Auto-extract JD -->
   <button id="autoExtractButton">Auto-Extract Job Details</button>
 
-  <!-- 3) Fallback / Manual Paste -->
+  <!-- Manual fallback -->
   <textarea
     id="jobDescInput"
     placeholder="—or paste the job description here—"
     rows="10"
   ></textarea>
 
-  <!-- 4) Trigger analysis -->
+  <!-- Trigger analysis -->
   <button id="analyzeButton">Get Suggestions</button>
 
   <section>
