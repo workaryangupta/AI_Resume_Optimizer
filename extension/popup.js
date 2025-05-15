@@ -1,3 +1,5 @@
+const API_BASE = 'https://ai-resume-optimizer-202660636509.asia-south2.run.app';
+
 // 1) Storage Helpers
 function getStoredResume() {
   return new Promise(res =>
@@ -43,7 +45,7 @@ document.getElementById('resumeFile').addEventListener('change', async e => {
   try {
     const form = new FormData();
     form.append('resume', file);
-    const resp = await fetch('http://localhost:5001/extract_resume', {
+    const resp = await fetch(`${API_BASE}/extract_resume`, {
       method: 'POST',
       body: form
     });
@@ -114,7 +116,7 @@ document.getElementById('getSuggestions').addEventListener('click', async () => 
     const fd = new FormData();
     fd.append('resume_text', resumeText);
     fd.append('job_description', jobDesc);
-    const resp = await fetch('http://localhost:5001/analyze', {
+    const resp = await fetch(`${API_BASE}/analyze`, {
       method: 'POST',
       body: fd
     });
