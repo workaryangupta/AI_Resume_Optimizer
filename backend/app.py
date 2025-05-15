@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 
 # ─── Configuration ────────────────────────────────────────────────────────────
 
-MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+MODEL_NAME = "sentence-transformers/all-mpnet-base-v2"
 DEJAVU_TTF = os.path.join(os.path.dirname(__file__), "DejaVuSans.ttf")
 
 # ─── Load Embedding Model ────────────────────────────────────────────────────
