@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Resume Tailor (Local NLP)",
+  "name": "AI Resume Analyzer",
   "version": "1.0",
   "description": "Analyzes and tailors your resume (PDF) based on job requirements, with local NLP (no paid APIs).",
   "action": {
@@ -11,12 +11,21 @@
     "service_worker": "background.js"
   },
   "permissions": [
+    "identity",
     "storage",
     "activeTab"
   ],
+  "oauth2": {
+    "client_id": "202660636509-gplpehrlas5fsj5p0s69eqdt7b7br7nc.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.file"
+    ]
+  },
   "host_permissions": [
+    "<all_urls>",
     "http://localhost:5001/*",
-    "<all_urls>"
+    "https://www.googleapis.com/*",
+    "https://docs.google.com/*"
   ],
   "content_scripts": [
     {

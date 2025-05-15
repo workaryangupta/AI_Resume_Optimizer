@@ -1,159 +1,139 @@
-/* Reset some default margins & paddings */
+:root {
+  --primary: #4285f4;
+  --primary-dark: #357ae8;
+  --background: #f7f9fc;
+  --surface: #ffffff;
+  --border: #e0e0e0;
+  --text: #333333;
+  --radius: 6px;
+  --spacing: 12px;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* Keyframes for fade-in of the overall UI */
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-/* Keyframes for the result box "slide-up" effect */
-@keyframes fadeInUp {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Body and overall container */
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  background: #f7f9fc; /* Subtle off-white background */
-  color: #333;
-  width: 320px; /* Typical extension popup width */
-  min-height: 100%; 
+  background: var(--background);
+  color: var(--text);
+  width: 360px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  animation: fadeIn 0.4s ease-in; /* Fade in the entire UI */
+  gap: 16px;
 }
 
-/* Headings */
-h1 {
-  font-size: 1.25rem;
+h1, h2 {
   text-align: center;
-  margin-bottom: 0.5rem;
-  color: #2c3e50;
+  color: var(--text);
+}
+h1 { font-size: 1.5rem; }
+h2 { font-size: 1.2rem; margin-bottom: 8px; }
+
+#uploadSection,
+#storedWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#storedWrapper {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
 }
 
-h2 {
-  font-size: 1.1rem;
-  text-align: center;
-  margin: 1.2rem 0 0.6rem 0;
-  color: #2c3e50;
-}
-
-/* Informational text under heading */
-p {
-  font-size: 0.9rem;
-  text-align: center;
-  margin-bottom: 1rem;
-  color: #555;
-}
-
-/* File input styling */
 input[type="file"] {
-  display: block;
-  width: 100%;
   font-size: 0.9rem;
-  margin-bottom: 12px;
-  padding: 4px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #fff;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
   cursor: pointer;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-input[type="file"]:focus {
-  outline: none;
-  border-color: #4285f4;
-  box-shadow: 0 0 0 3px rgba(66,133,244,0.2);
-}
-
-/* Textarea for job description */
 textarea {
   width: 100%;
-  min-height: 100px;
-  padding: 8px;
-  margin-bottom: 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  min-height: 120px;
+  padding: var(--spacing);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   font-size: 0.9rem;
   resize: vertical;
-  transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
-
 textarea:focus {
   outline: none;
-  border-color: #4285f4;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(66,133,244,0.2);
 }
 
-/* Tailor Resume button */
-button {
-  display: inline-block;
+.btn {
+  display: block;
   width: 100%;
-  padding: 10px;
-  font-size: 0.95rem;
+  padding: var(--spacing);
+  font-size: 1rem;
   font-weight: 600;
-  text-align: center;
-  border: none;
-  border-radius: 4px;
-  background: linear-gradient(to right, #4285f4, #559af6);
   color: #fff;
+  background: var(--primary);
+  border: none;
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: background 0.2s ease-in-out, transform 0.2s ease-in-out;
+  transition: background 0.2s ease, transform 0.1s ease;
+  text-align: center;
+  margin-top: 8px;
+}
+.btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
 }
 
-button:hover {
-  background: linear-gradient(to right, #357ae8, #4a8ef0);
-  transform: scale(1.02);
-}
-
-/* Sections */
-section {
-  margin-top: 1.2rem;
-}
-
-/* Result containers */
 .result-box {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  padding: 12px;
-  min-height: 80px;
-  white-space: pre-wrap;
-  font-size: 0.9rem;
-  border-radius: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
   line-height: 1.4;
-  color: #444;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-  animation: fadeInUp 0.4s ease-out; /* Slide-up animation */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
 }
 
-/* Download link styling */
-.result-box a {
-  display: inline-block;
-  margin-top: 6px;
-  font-weight: 600;
-  color: #4285f4;
-  text-decoration: none;
-  transition: color 0.2s ease-in-out;
+/* Gauge (circular progress) */
+.gauge {
+  --size: 60px;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      var(--primary) calc(var(--pct)*1%),
+      var(--border) 0
+    );
+  margin: 0 auto;
 }
 
-.result-box a:hover {
-  text-decoration: underline;
-  color: #357ae8;
+/* Tip box under gauge */
+.tip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+/* Suggestion list */
+.keyword-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.keyword-list li {
+  padding: 8px;
+  background: #f0f0f0;
+  border-radius: var(--radius);
 }

@@ -4,50 +4,50 @@
   <meta charset="UTF-8">
   <title>Resume Tailor (Local NLP)</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    #editor { border:1px solid #ccc; padding:8px; min-height:150px; background:#fff; overflow:auto; }
-    #toolbar button { margin-right:4px; }
-  </style>
 </head>
 <body>
-  <h1>Resume Tailor (Local NLP)</h1>
+  <h1>AI Resume Optimizer</h1>
 
-  <!-- Resume upload/status -->
+  <!-- 1) Upload / Stored Resume -->
   <div id="uploadSection">
     <input type="file" id="resumeFile" accept="application/pdf">
     <span id="resumeChooserText">No file chosen</span>
   </div>
-
-  <!-- Stored base resume (hidden until set) -->
   <div id="storedWrapper" style="display:none; align-items:center; gap:8px;">
     <span>✔️ Base resume:</span>
     <strong id="resumeFileName"></strong>
-    <button id="changeResumeButton">Change</button>
+    <button id="changeResumeButton" class="btn">Change</button>
   </div>
 
-  <!-- Editor (always non-persisted) -->
-  <div id="editorSection" style="display:none;">
-    <h2>Edit Your Resume for This Job</h2>
-    <div id="toolbar">
-      <button data-cmd="bold"><b>B</b></button>
-      <button data-cmd="italic"><i>I</i></button>
-      <button data-cmd="insertUnorderedList">• List</button>
+  <!-- 2) Job description -->
+  <button id="autoExtract" class="btn">Auto-Extract Job Details</button>
+  <textarea id="jobDescInput" rows="8" placeholder="—or paste the job description here—"></textarea>
+
+  <!-- 3) Trigger Suggestions -->
+  <button id="getSuggestions" class="btn">Get Suggestions</button>
+
+  <!-- 4) Keyword Match Card (hidden until you click) -->
+  <section id="keywordCard" class="result-box" style="display:none; margin-top:16px;">
+    <h2>
+      <svg class="icon" viewBox="0 0 24 24"><!-- check-circle icon --><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm-1 15l-5-5 1.414-1.414L11 14.172l5.586-5.586L18 10l-7 7z"/></svg>
+      Keyword Match – <span id="cardStatus">Needs Work</span>
+    </h2>
+    <p id="cardText">Your resume has 0 out of 0 (0%) keywords that appear in the job description.</p>
+    <div id="cardGauge" class="gauge" style="--pct:0;"></div>
+    <div class="tip">
+      💡 Try to get your score above 70% to increase your chances!
     </div>
-    <div id="editor" contenteditable="true"></div>
-    <button id="downloadEdited">Download Edited Resume</button>
-  </div>
-
-  <!-- Job description -->
-  <button id="autoExtract">Auto-Extract Job Details</button>
-  <textarea id="jobDescInput" rows="10"
-    placeholder="—or paste the job description here—"></textarea>
-
-  <!-- Suggestions -->
-  <button id="getSuggestions">Get Suggestions</button>
-  <section>
-    <h2>Suggestions</h2>
-    <div id="suggestions" class="result-box"></div>
   </section>
+
+  <!-- 5) Missing Keywords List (hidden until you click) -->
+  <section id="suggestionCard" class="result-box" style="display:none; margin-top:16px;">
+    <h2>Missing Keywords</h2>
+    <ul id="suggestionList" class="keyword-list"></ul>
+  </section>
+
+  <!-- 6) Drive-based edit & download -->
+  <button id="editResumeBtn" class="btn">Edit in Google Docs</button>
+  <button id="downloadEditedBtn" class="btn">Download Edited Resume</button>
 
   <script src="popup.js"></script>
 </body>
