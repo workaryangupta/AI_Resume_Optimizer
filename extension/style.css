@@ -1,107 +1,181 @@
 :root {
-  --primary: #4285f4;
-  --primary-dark: #357ae8;
-  --background: #f7f9fc;
+  --primary: #18b5db;
+  --primary-dark: #079abf;
+  --background: #FFFFFF;
   --surface: #ffffff;
   --border: #e0e0e0;
   --text: #333333;
-  --radius: 6px;
-  --spacing: 12px;
+  --text-muted: #555555;
+  --radius: 8px;
+  --spacing: 1rem;
+  --small-spacing: 0.5rem;
+  --transition: 0.2s ease-in-out;
 }
 
+/* Reset & Base */
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-
 body {
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   background: var(--background);
   color: var(--text);
   width: 360px;
-  padding: 16px;
+  padding: var(--spacing);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--spacing);
 }
 
-h1, h2 {
+/* App Title */
+.app-title {
+  font-size: 1.60rem;
   text-align: center;
-  color: var(--text);
+  margin-bottom: var(--small-spacing);
+  background: linear-gradient(90deg, rgb(97, 153, 245), #18b5db);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
-h1 { font-size: 1.5rem; }
-h2 { font-size: 1.2rem; margin-bottom: 8px; }
 
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: var(--spacing) 0;
+}
+
+/* Upload / Stored Resume */
 #uploadSection,
 #storedWrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--small-spacing);
 }
 #storedWrapper {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px;
+  padding: var(--small-spacing);
 }
 
+/* File Input */
 input[type="file"] {
-  font-size: 0.9rem;
-  padding: 8px;
+  flex: 1;
+  padding: var(--small-spacing);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   cursor: pointer;
 }
 
+/* Textarea */
 textarea {
   width: 100%;
-  min-height: 120px;
-  padding: var(--spacing);
+  min-height: 8rem;
+  padding: var(--small-spacing);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   font-size: 0.9rem;
   resize: vertical;
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 textarea:focus {
-  outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(66,133,244,0.2);
+  outline: none;
 }
 
+/* Buttons */
 .btn {
   display: block;
   width: 100%;
-  padding: var(--spacing);
-  font-size: 1rem;
-  font-weight: 600;
-  color: #fff;
-  background: var(--primary);
+  padding: var(--small-spacing);
   border: none;
   border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
-  text-align: center;
-  margin-top: 8px;
+  transition: background var(--transition), transform var(--transition);
+  margin-top: var(--small-spacing);
+}
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn-secondary {
+  background: #666;
+  color: #fff;
+}
+.btn-small {
+  width: auto;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.80rem;
+}
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--small-spacing);
 }
 .btn:hover {
+  transform: scale(1.025);
+}
+.btn-primary:hover {
   background: var(--primary-dark);
-  transform: translateY(-1px);
+}
+.btn-secondary:hover {
+  background: #444;
 }
 
-.result-box {
+/* Focus Ring */
+.btn:focus,
+input:focus,
+textarea:focus {
+  outline: 3px solid rgba(66,133,244,0.4);
+  outline-offset: 2px;
+}
+
+/* Cards */
+.card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px;
-  line-height: 1.4;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  padding: var(--spacing);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  animation: fadeIn var(--transition);
 }
 
-/* Gauge (circular progress) */
+/* Card Header & Title */
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--small-spacing);
+}
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: var(--small-spacing);
+  font-size: 1.1rem;
+}
+.card-title .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: var(--primary);
+}
+
+/* Card Text */
+.card p {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: var(--small-spacing);
+}
+
+/* Gauge */
 .gauge {
-  --size: 60px;
+  --size: 72px;
   width: var(--size);
   height: var(--size);
   border-radius: 50%;
@@ -110,30 +184,47 @@ textarea:focus {
       var(--primary) calc(var(--pct)*1%),
       var(--border) 0
     );
-  margin: 0 auto;
+  margin: var(--spacing) auto;
 }
 
-/* Tip box under gauge */
+/* Tip Box */
 .tip {
-  background: var(--surface);
+  margin-top: var(--small-spacing);
+  padding: var(--small-spacing);
+  background: #fefefe;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px;
-  margin-top: 12px;
   font-size: 0.9rem;
 }
 
-/* Suggestion list */
+/* Missing Keyword List */
 .keyword-list {
   list-style: none;
   padding: 0;
-  margin: 8px 0 0;
+  margin: var(--small-spacing) 0 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--small-spacing);
 }
 .keyword-list li {
-  padding: 8px;
+  padding: var(--small-spacing);
   background: #f0f0f0;
   border-radius: var(--radius);
+}
+
+/* Fade-In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+#storedWrapper .btn {
+  margin-top: 0;
 }

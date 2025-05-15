@@ -2,52 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Resume Tailor (Local NLP)</title>
+  <title>AI Resume Optimizer</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>AI Resume Optimizer</h1>
+  <!-- App Title -->
+  <h1 class="app-title">🤖 <strong>AI Resume Optimizer</strong></h1>
 
   <!-- 1) Upload / Stored Resume -->
   <div id="uploadSection">
     <input type="file" id="resumeFile" accept="application/pdf">
     <span id="resumeChooserText">No file chosen</span>
   </div>
-  <div id="storedWrapper" style="display:none; align-items:center; gap:8px;">
+  <div id="storedWrapper">
     <span>✔️ Base resume:</span>
     <strong id="resumeFileName"></strong>
-    <button id="changeResumeButton" class="btn">Change</button>
+    <button id="changeResumeButton" class="btn btn-small btn-icon">⚙️ Change</button>
   </div>
 
-  <!-- 2) Job description -->
-  <button id="autoExtract" class="btn">Auto-Extract Job Details</button>
+  <div class="divider"></div>
+
+  <!-- 2) Job Description -->
+  <button id="autoExtract" class="btn btn-icon">🔍 Auto-Extract Job Details</button>
   <textarea id="jobDescInput" rows="8" placeholder="—or paste the job description here—"></textarea>
 
-  <!-- 3) Trigger Suggestions -->
-  <button id="getSuggestions" class="btn">Get Suggestions</button>
+  <div class="divider"></div>
 
-  <!-- 4) Keyword Match Card (hidden until you click) -->
-  <section id="keywordCard" class="result-box" style="display:none; margin-top:16px;">
-    <h2>
-      <svg class="icon" viewBox="0 0 24 24"><!-- check-circle icon --><path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm-1 15l-5-5 1.414-1.414L11 14.172l5.586-5.586L18 10l-7 7z"/></svg>
-      Keyword Match – <span id="cardStatus">Needs Work</span>
-    </h2>
-    <p id="cardText">Your resume has 0 out of 0 (0%) keywords that appear in the job description.</p>
+  <!-- 3) Get Suggestions -->
+  <button id="getSuggestions" class="btn btn-primary btn-icon">⚡ Get Suggestions</button>
+
+  <div class="divider"></div>
+
+  <!-- 4) Keyword Match Card -->
+  <section id="keywordCard" class="card" hidden>
+    <header class="card-header">
+      <div class="card-title">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm-1 15l-5-5 1.414-1.414L11 14.172l5.586-5.586L18 10l-7 7z"/>
+        </svg>
+        <span>Keyword Match – <span id="cardStatus">Needs Work</span></span>
+      </div>
+    </header>
+    <p id="cardText">
+      Your resume has 0 out of 0 (0%) keywords that appear in the job description.
+    </p>
     <div id="cardGauge" class="gauge" style="--pct:0;"></div>
     <div class="tip">
       💡 Try to get your score above 70% to increase your chances!
     </div>
   </section>
 
-  <!-- 5) Missing Keywords List (hidden until you click) -->
-  <section id="suggestionCard" class="result-box" style="display:none; margin-top:16px;">
+  <!-- 5) Missing Keywords List -->
+  <section id="suggestionCard" class="card" hidden>
     <h2>Missing Keywords</h2>
     <ul id="suggestionList" class="keyword-list"></ul>
   </section>
 
-  <!-- 6) Drive-based edit & download -->
-  <button id="editResumeBtn" class="btn">Edit in Google Docs</button>
-  <button id="downloadEditedBtn" class="btn">Download Edited Resume</button>
+  <div class="divider"></div>
+
+  <!-- 6) Drive-Based Actions -->
+  <button id="editResumeBtn" class="btn btn-secondary btn-icon">&#x270D; Edit in Google Docs</button>
+  <button id="downloadEditedBtn" class="btn btn-secondary btn-icon">⬇️ Download Edited Resume</button>
 
   <script src="popup.js"></script>
 </body>
